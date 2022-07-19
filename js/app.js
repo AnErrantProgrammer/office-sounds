@@ -3,7 +3,10 @@ const App = new Vue({
   data: {
     effects: {},
     enableEvents: false,
+    enableMessage: false,
     timer: null,
+    message: "",
+    messageTimer: 0,
     volume: 1,
     minimumDelay: 10000,
     lastEvent: null,
@@ -21,15 +24,15 @@ const App = new Vue({
       ],
 
       event: [
-        // {
-        //   id: "conference-prison-mike",
-        //   type: "conferences",
-        //   file: "prison-mike.mp3",
-        //   volume: 0.9,
-        //   autoplay: false,
-        //   loop: false,
-        //   filters: ["lowPassFilter"],
-        // },
+        {
+          id: "conference-prison-mike",
+          type: "conferences",
+          file: "prison-mike.mp3",
+          volume: 0.9,
+          autoplay: false,
+          loop: false,
+          filters: ["lowPassFilter"],
+        },
         // {
         //   id: "office-chairs",
         //   type: "office",
@@ -38,26 +41,26 @@ const App = new Vue({
         //   autoplay: false,
         //   loop: false,
         // },
-        {
-          id: "office-foremangrill",
-          type: "office",
-          file: "foremangrill.mp3",
-          volume: 1,
-          autoplay: false,
-          loop: false,
-          filters: ["convolver"],
-        },
+        // {
+        //   id: "office-foremangrill",
+        //   type: "office",
+        //   file: "foremangrill.mp3",
+        //   volume: 1,
+        //   autoplay: false,
+        //   loop: false,
+        //   filters: ["convolver"],
+        // },
       ],
 
       ambient: [
-        {
-          id: "ambient-phones",
-          type: "ambient",
-          file: "phones.mp3",
-          volume: 0.1,
-          autoplay: false,
-          loop: false,
-        },
+        // {
+        //   id: "ambient-phones",
+        //   type: "ambient",
+        //   file: "phones.mp3",
+        //   volume: 0.1,
+        //   autoplay: false,
+        //   loop: false,
+        // },
         {
           id: "ambient-ohyeah",
           type: "ambient",
@@ -97,6 +100,8 @@ const App = new Vue({
     this.timer = setInterval(function () {
       vm.mainLoop();
     }, 1000);
+
+    this.showMessage("Click to start")
   },
   created: function () {},
   methods: {
@@ -106,8 +111,10 @@ const App = new Vue({
      */
     handleScroll: function (event) {
       if (event.deltaY < 0) {
+        this.showMessage("Volume up");
         this.volume += 0.1;
       } else {
+        this.showMessage("Volume down");
         this.volume -= 0.1;
       }
 
@@ -192,6 +199,10 @@ const App = new Vue({
      * @returns
      */
     mainLoop: function () {
+
+      if(--this.messageTimer == 0){
+        this.hideMessage();
+      }
       // If events arent enabled don't do anything
       if (!this.enableEvents) return false;
 
@@ -200,9 +211,9 @@ const App = new Vue({
       let timeSinceEpoch = now.getTime();
 
       // Check if all ambient sounds have been played
-      // if (this.sounds.ambient.every((sound) => sound.lastPlay !== null)) {
-      //   this.sounds.ambient.forEach((sound) => (sound.lastPlay = null));
-      // }
+      if (this.sounds.ambient.every((sound) => sound.lastPlay !== null)) {
+        this.sounds.ambient.forEach((sound) => (sound.lastPlay = null));
+      }
 
       // Check if all events have been played
       if (this.sounds.event.every((sound) => sound.lastPlay !== null)) {
@@ -210,25 +221,30 @@ const App = new Vue({
       }
 
       // Check that a minimum amount of time has elapsed since the last event
+      let soundPlaying = this.sounds.event.find((sound) => sound.buffer.playing) || this.sounds.ambient.find((sound) => sound.buffer.playing);
+
+      if(soundPlaying){
+        this.lastEvent = timeSinceEpoch;
+      }
+
       if (this.lastEvent == null || timeSinceEpoch - this.lastEvent > this.minimumDelay) {
         // Find if a sound is playing
-        let soundPlaying = this.sounds.event.find((sound) => sound.buffer.playing) || this.sounds.ambient.find((sound) => sound.buffer.playing);
-
+        
         if (!soundPlaying) {
           // Roll the dice to decide to play a sound
           // If the number is above 50 play an ambient sound
           // If the number is above 90 play an event sound (like a conference)
           let playEvent = Math.floor(Math.random() * 100) + 1;
-
+          
           if (playEvent > 50) {
             // Set the playable sounds to ambient
-            let playableSounds = this.sounds.ambient;
+            let playableSounds = this.sounds.ambient.filter((sound) => sound.lastPlay == null);
 
-            if (playEvent > 1) {
+            if (playEvent > 90) {
               // Set the playable sounds to an event as long as it has not been played
               playableSounds = this.sounds.event.filter((sound) => sound.lastPlay == null);
             }
-
+            console.log(playableSounds)
             // Pick a random sound from the set
             let randomPlayableSoundIndex = Math.floor(Math.random() * playableSounds.length);
 
@@ -246,13 +262,45 @@ const App = new Vue({
      */
     toggleSounds: function () {
       if (this.sounds.background[0].buffer.playing) {
+        this.showMessage("Disabling all sounds")
         this.enableEvents = false;
+        this.sounds.event.forEach((sound) => (sound.buffer.stop()));
+        this.sounds.ambient.forEach((sound) => (sound.buffer.stop()));
         this.sounds.background[0].buffer.stop();
       } else {
+        this.showMessage("Enabling all sounds")
         this.enableEvents = true;
+        this.sounds.event.forEach((sound) => (sound.lastPlay = null));
+        this.sounds.ambient.forEach((sound) => (sound.lastPlay = null));
         this.sounds.background[0].buffer.play();
       }
     },
+
+    toggleEvents: function () {
+      
+      if (this.enableEvents) {
+        this.showMessage("Disabling events")
+        this.enableEvents = false;
+        this.sounds.event.forEach((sound) => (sound.buffer.stop()));
+        this.sounds.ambient.forEach((sound) => (sound.buffer.stop()));
+      } else {
+        this.showMessage("Enabling events")
+        this.enableEvents = true;
+        this.sounds.event.forEach((sound) => (sound.lastPlay = null));
+        this.sounds.ambient.forEach((sound) => (sound.lastPlay = null));
+      }
+    },
+
+    showMessage: function(message){
+      let that = this;
+      this.message = message;
+      this.enableMessage = true;
+      this.messageTimer = 4;
+    },
+
+    hideMessage: function() {
+      this.enableMessage = false;
+    }
   },
   computed: {},
   components: {},

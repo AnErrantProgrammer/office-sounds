@@ -1,5 +1,6 @@
 html,body{
     margin:0;
+    font-family: 'Lato', sans-serif;
 }
 
 .full { 
@@ -8,9 +9,40 @@ html,body{
     position: absolute;
     height:100%;
     width:100%;
-    background: url(../images/background.png) no-repeat center center fixed; 
+    background: url(../images/jims_desk.jpg) no-repeat center center fixed; 
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
     background-size: cover;
   }
+
+#phone{
+    position:absolute;
+    left:72%;
+    top:66%;
+    width:14%;
+    height:18%;
+    background-color: white;
+    opacity: 0.01 ;
+}
+
+#message{
+    position:absolute;
+    bottom: 10px;
+    right:10px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    padding: 20px;
+    font-size: 2em;
+}
+
+/* we will explain what these classes do next! */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}

@@ -5,12 +5,23 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pizzicato/0.6.4/Pizzicato.min.js" integrity="sha512-K+cPWcoDCr2JFFfe912LrvRUQbVJuWNfeWK5r/HrmpDs8ELrsjVib8Fs5oAxzu76fG66ajGhDLvvcxBbeEzl9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.min.js" integrity="sha512-BKbSR+cfyxLdMAsE0naLReFSLg8/pjbgfxHh/k/kUC82Hy7r6HtR5hLhobaln2gcTvzkyyehrdREdjpsQwy2Jw==" crossorigin="anonymous"></script>
 	<link href="stylesheets/main.css" rel="stylesheet" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
 </head>
 <body>
 	<div id="app">
 		<div class="full" @click="toggleSounds" v-on:contextmenu.prevent="sounds.event[0].buffer.play()" v-on:mousewheel="handleScroll">
 		</div>
+		<div id="phone" @click="toggleEvents">
+		</div>
+		<Transition>
+			<div id="message" v-if="enableMessage" @click="hideMessage">
+				{{message}}
+			</div>
+		</Transition>
 	</div>
+
 	<script src="js/app.js"></script>
 </body>
 </html>
